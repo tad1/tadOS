@@ -1,0 +1,12 @@
+{
+	"build": {
+		"dockerfile": "dockerfile"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"Swellaby.rust-pack"
+			]
+		}
+	}
+}
