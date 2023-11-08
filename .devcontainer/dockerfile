@@ -1,6 +1,5 @@
 FROM archlinux
-RUN pacman --noconfirm -Sy rustup cargo-edit qemu-system-aarch64 arm-none-eabi-gdb gcc
+RUN pacman --noconfirm -Sy rustup cargo-edit qemu-system-aarch64 aarch64-linux-gnu-gdb gcc git
 RUN rustup default stable
-RUN rustup target add aarch64-unknown-none
 RUN cargo install cargo-binutils
 RUN rustup component add llvm-tools-preview

@@ -1,0 +1,5 @@
+[target.aarch64-unknown-none]
+rustflags = ["-C", "link-arg=-T/workspaces/tadOS/src/link.x"]
+
+[build]
+target = "aarch64-unknown-none"
