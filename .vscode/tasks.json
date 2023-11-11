@@ -1,0 +1,54 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+
+        {
+            "type": "cargo",
+            "command": "build",
+            "args": ["-v"],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "Build"
+        },{
+            "label": "Run QEMU",
+            "type": "shell",
+            "isBackground": true,
+            "command": "echo Starting QEMU&qemu-system-aarch64 -M raspi3b -kernel ./target/aarch64-unknown-none/debug/tad_os -S -s",
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(Starting QEMU)",
+                    "line": 1,
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^(Starting QEMU)",
+                    "endsPattern": "^(Starting QEMU)"
+                }
+            }
+        }, {
+            "label": "Build and run",
+            "dependsOrder":"sequence",
+            "dependsOn": [
+                "Build",
+                "Run QEMU",
+            ]
+        },
+        
+        {
+            "label": "Terminate All Tasks",
+            "command": "echo ${input:terminate}",
+            "type": "shell",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+          "id": "terminate",
+          "type": "command",
+          "command": "workbench.action.tasks.terminate",
+          "args": "terminateAll"
+        }
+      ]
+}

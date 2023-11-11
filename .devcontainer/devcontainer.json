@@ -6,8 +6,11 @@
 		"vscode": {
 			"extensions": [
 				"Swellaby.rust-pack",
-				"ZixuanWang.linkerscript"
+				"ZixuanWang.linkerscript",
+				"christian-kohler.path-intellisense",
+				"webfreak.debug"
 			]
 		}
 	}
+	
 }
