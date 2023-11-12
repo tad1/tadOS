@@ -3,3 +3,4 @@ RUN pacman --noconfirm -Sy rustup cargo-edit qemu-system-aarch64 aarch64-linux-g
 RUN rustup default stable
 RUN cargo install cargo-binutils
 RUN rustup component add llvm-tools-preview
+RUN rustup target add aarch64-unknown-none
