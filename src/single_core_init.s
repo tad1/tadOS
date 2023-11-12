@@ -2,7 +2,7 @@
     and     x1, x1, #3
     cbz     x1, 2f
 1:
-    wfi @ halts CPU
+    wfi
     b       1b
 2:
     mov     x1, #0x100000
