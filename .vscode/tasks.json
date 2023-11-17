@@ -15,7 +15,7 @@
             "label": "Run QEMU",
             "type": "shell",
             "isBackground": true,
-            "command": "echo Starting QEMU&qemu-system-aarch64 -M raspi3b -kernel ./target/aarch64-unknown-none/debug/tad_os -S -s",
+            "command": "echo Starting QEMU&qemu-system-aarch64 -M raspi3b -kernel ./target/aarch64-unknown-none/debug/tad_os -serial stdio -s",
             "problemMatcher": {
                 "pattern": {
                     "regexp": "^(Starting QEMU)",
