@@ -1,7 +1,11 @@
 {
     "rust-analyzer.check.allTargets": false,
+    "rust-analyzer.cargo.features": ["bsp_rpi3"],
     "rust-analyzer.check.extraArgs": [
         "--target",
         "aarch64-unknown-none"
+    ],
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
     ]
 }

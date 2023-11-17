@@ -5,7 +5,7 @@
         {
             "type": "cargo",
             "command": "build",
-            "args": ["-v"],
+            "args": ["-v", "--features","bsp_rpi3"],
             "problemMatcher": [
                 "$rustc"
             ],
