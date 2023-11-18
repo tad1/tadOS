@@ -9,9 +9,13 @@ mod cpu;
 mod panic_wait;
 mod console;
 mod print;
+mod synchronization;
 
 unsafe fn kernel_init() -> !{
-    println!("Hello from tadOS!");
+    use console::console;
 
-    panic!("Oh no! It's a panic attack! Anyway..")
+    println!("[0] Hello from tadOS!");
+    println!("[1] Chars written {}", console().chars_written());
+
+    panic!("[2] Oh no! It's a panic attack! Anyway..")
 }
