@@ -12,6 +12,11 @@
             "group": "build",
             "label": "Build"
         },{
+            "type": "shell",
+            "command": "cargo",
+            "args": ["objcopy", "-v", "--features","bsp_rpi3", "--", "--strip-all", "-O", "binary", "kernel8.img"],
+            "label": "create image"
+        },{
             "label": "Run QEMU",
             "type": "shell",
             "isBackground": true,
@@ -32,6 +37,7 @@
             "dependsOrder":"sequence",
             "dependsOn": [
                 "Build",
+                "create image",
                 "Run QEMU",
             ]
         },
