@@ -27,6 +27,12 @@ unsafe fn kernel_init() -> !{
 fn kernel_main() -> !{
     use console::console;
 
+    println!("
+    _            _  ___  ____  
+   | |_ __ _  __| |/ _ \\/ ___| 
+   | __/ _` |/ _` | | | \\___ \\ 
+   | || (_| | (_| | |_| |___) |
+    \\__\\__,_|\\__,_|\\___/|____/ ");
     println!("[0] {} version {}",
     env!("CARGO_PKG_NAME"),
     env!("CARGO_PKG_VERSION"));
