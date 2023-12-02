@@ -16,7 +16,7 @@ use tock_registers::{
 register_bitfields!{
     u32,
     // Flag register
-    FR[
+    FR [
         /// Transmit FIFO empty. The meaning of this bit depends on the state of the FEN bit in the
         /// Line Control Register, LCR_H.
         ///
@@ -271,12 +271,7 @@ impl PL011UartInner {
         }
 
         // Read one character.
-        let mut ret = self.registers.DR.get() as u8 as char;
-
-        // Convert carrige return to newline.
-        if ret == '\r' {
-            ret = '\n'
-        }
+        let ret = self.registers.DR.get() as u8 as char;
 
         // Update statistics.
         self.chars_read += 1;
