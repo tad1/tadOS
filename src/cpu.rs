@@ -7,6 +7,3 @@ mod boot;
 
 pub use self::arch_cpu::wait_forever;
 
-
-#[cfg(feature = "bsp_rpi3")]
-pub use arch_cpu::spin_for_cycles;

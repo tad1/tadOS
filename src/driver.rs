@@ -1,5 +1,4 @@
-use crate::synchronization::{NullLock, interface::Mutex};
-
+use crate::{info, synchronization::{NullLock, interface::Mutex}};
 
 pub mod interface {
     pub trait DeviceDriver{
@@ -96,6 +95,15 @@ impl DriverManager{
             }
 
         })
+    }
+
+    pub fn enumerate(&self) {
+        let mut i: usize = 1;
+        self.for_each_descriptor(|descriptor| {
+            info!("      {}. {}", i, descriptor.device_driver.compatible());
+
+            i += 1;
+        });
     }
 
 }

@@ -1,6 +1,9 @@
 #![feature(asm_const)]
+#![feature(const_option)]
+#![feature(nonzero_min_max)]
 #![feature(format_args_nl)]
 #![feature(panic_info_message)]
+#![feature(unchecked_math)]
 #![no_main]
 #![no_std]
 
@@ -12,6 +15,7 @@ mod driver;
 mod panic_wait;
 mod print;
 mod synchronization;
+mod time;
 
 unsafe fn kernel_init() -> !{
 
@@ -35,40 +39,29 @@ fn kernel_main() -> !{
     \\__\\__,_|\\__,_|\\___/|____/ ");
 
     println!("{:^37}", bsp::board_name());
-    println!();
-    println!("[ML] Requesting binary");
-    console().flush();
+    
+    use core::time::Duration;
 
-    console().clear_rx();
+    info!(
+        "{} version {}",
+        env!("CARGO_PKG_NAME"),
+        env!("CARGO_PKG_VERSION")
+    );
 
-    // we are sending a secret signal to notify: "Hey! I'm ready, gimme the binary now"
-    for _ in 0..3{
-        console().write_char(3 as char);
+    info!("Booting on: {}", bsp::board_name());
+
+    info!(
+        "Architectural timer resolution: {} ns",
+        time::time_manager().resolution().as_nanos()
+    );
+
+    info!("Drivers loaded:");
+    driver::driver_manager().enumerate();
+    time::time_manager().spin_for(Duration::from_nanos(1));
+
+    loop {
+        info!("Spinning for 1 second");
+        time::time_manager().spin_for(Duration::from_secs(1));
     }
-
-    // oh, we can send only 8bit? let's fucking compose that!
-    let mut size: u32 = u32::from(console().read_char() as u8);
-    size |= u32::from(console().read_char() as u8) << 8;
-    size |= u32::from(console().read_char() as u8) << 16;
-    size |= u32::from(console().read_char() as u8) << 24;
-
-    console().write_char('O');
-    console().write_char('K');
-
-    let kernel_addr: *mut u8 = bsp::memory::board_default_load_addr() as *mut u8;
-    unsafe {
-        for i in 0..size{
-            core::ptr::write_volatile(kernel_addr.offset(i as isize), console().read_char() as u8)
-        }
-    }
-
-    println!("[ML] Loaded! Executing the payload now\n");
-
-    // Use black magic to create a function pointer
-    let kernel: fn() -> ! = unsafe {
-        core::mem::transmute(kernel_addr)
-    };
-
-    kernel()
 
 }

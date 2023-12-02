@@ -1,7 +1,8 @@
 use crate::{
     bsp::device_driver::{common::MMIODerefWrapper, bcm::bcm2xxx_gpio::GPPUDCLK0::{PUDCLK15, PUDCLK14}}, driver, synchronization,
-    synchronization::{NullLock, interface::Mutex}, cpu,
+    synchronization::{NullLock, interface::Mutex}, time,
 };
+use core::time::Duration;
 use tock_registers::{
     interfaces::{ReadWriteable, Writeable},
     register_bitfields, register_structs,
@@ -87,13 +88,14 @@ impl GPIOInner{
     }
 
     fn disable_pub_14_15_bcm2837(&mut self){
-        const DELAY: usize = 2000;
+        const DELAY: Duration = Duration::from_micros(1);
 
         self.registers.GPPUD.write(GPPUD::PUD::Off);
-        cpu::spin_for_cycles(DELAY);
+        time::time_manager().spin_for(DELAY);
 
         self.registers.GPPUDCLK0.write(PUDCLK15::AssertClock + PUDCLK14::AssertClock);
-        cpu::spin_for_cycles(DELAY);
+        time::time_manager().spin_for(DELAY);
+
 
         self.registers.GPPUD.write(GPPUD::PUD::Off);
         self.registers.GPPUDCLK0.set(0);

@@ -18,15 +18,16 @@ fn preventreenter(){
 fn panic(info: &PanicInfo) -> !{
     preventreenter();
 
+    let timestamp = crate::time::time_manager().uptime();
     let (file, line, column) = match info.location() {
         Some(loc) => (loc.file(), loc.line(), loc.column()),
         _ => ("???", 0, 0)
     };
 
     println!(
-        "Kernel panic!\n\n\
+        "[  {:>3}.{:06}] Kernel panic!\n\n\
         Parnic location:\n      File '{}', line {}, column {}\n\n\
-        {}", file, line, column, info.message().unwrap_or(&format_args!("")));
+        {}",timestamp.as_secs(), timestamp.subsec_micros(), file, line, column, info.message().unwrap_or(&format_args!("")));
 
 
     cpu::wait_forever()
