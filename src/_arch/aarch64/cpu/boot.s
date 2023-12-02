@@ -12,7 +12,7 @@ _start:
     and x0, x0, {CONST_CORE_ID_MASK}
     ldr x1, BOOT_CORE_ID
     cmp x0, x1
-    b.ne .L_prepare_rust
+    b.ne .L_parking_loop
 
     ADR_REL x0, __bss_start
     ADR_REL x1, __bss_end_exclusive
