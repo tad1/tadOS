@@ -183,18 +183,18 @@ impl PL011UartInner {
 
     /// Set up baud rate and characteristics.
     ///
-    /// This results in 8N1 and 921_600 baud.
+    /// This results in 8N1 and 9_600 baud.
     ///
     /// The calculation for the BRD is (we set the clock to 48 MHz in config.txt):
-    /// `(48_000_000 / 16) / 921_600 = 3.2552083`.
+    /// `(48_000_000 / 16) / 921_600 = 312.5`.
     ///
     /// This means the integer part is `3` and goes into the `IBRD`.
-    /// The fractional part is `0.2552083`.
+    /// The fractional part is `0.2552083333333335`.
     ///
     /// `FBRD` calculation according to the PL011 Technical Reference Manual:
-    /// `INTEGER((0.2552083 * 64) + 0.5) = 16`.
+    /// `INTEGER((0.5 * 64) + 0.5) = 32`.
     ///
-    /// Therefore, the generated baud rate divider is: `3 + 16/64 = 3.25`. Which results in a
+    /// Therefore, the generated baud rate divider is: `312 + 32/64 = 312.5`. Which results in a
     /// genrated baud rate of `48_000_000 / (16 * 3.25) = 923_077`.
     ///
     /// Error = `((923_077 - 921_600) / 921_600) * 100 = 0.16%`.
@@ -222,8 +222,8 @@ impl PL011UartInner {
         // contents of IBRD or FBRD, a LCR_H write must always be performed at the end.
         //
         // Set the baud rate, 8N1 and FIFO enabled.
-        self.registers.IBRD.write(IBRD::BAUD_DIVINT.val(3));
-        self.registers.FBRD.write(FBRD::BAUD_DIVFRAC.val(16));
+        self.registers.IBRD.write(IBRD::BAUD_DIVINT.val(78));
+        self.registers.FBRD.write(FBRD::BAUD_DIVFRAC.val(8));
         self.registers
             .LCR_H
             .write(LCR_H::WLEN::EightBit + LCR_H::FEN::FifosEnabled);
