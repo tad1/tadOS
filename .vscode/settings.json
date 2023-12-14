@@ -1,6 +1,6 @@
 {
     "rust-analyzer.check.allTargets": false,
-    "rust-analyzer.cargo.features": ["bsp_rpi3"],
+    "rust-analyzer.cargo.features": ["bsp_rpi3", "log"],
     "rust-analyzer.check.extraArgs": [
         "--target",
         "aarch64-unknown-none"

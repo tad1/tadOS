@@ -30,4 +30,8 @@ impl TimeManager {
     pub fn spin_for(&self, duration: Duration){
         arch_time::spin_for(duration);
     }
+
+    pub fn get_sys_tick_count(&self) -> u64 {
+        arch_time::get_sys_tick_count()
+    }
 }

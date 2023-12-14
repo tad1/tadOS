@@ -2,20 +2,29 @@
 #![feature(const_option)]
 #![feature(nonzero_min_max)]
 #![feature(format_args_nl)]
+#![feature(slice_as_chunks)]
 #![feature(panic_info_message)]
 #![feature(unchecked_math)]
 #![no_main]
 #![no_std]
 
+use fs::controller::{Controller, TestClock, VolumeIdx};
+use sdcard::SdResult;
+
+use crate::bsp::driver::{SDIO, new_sdcard};
+
 
 mod bsp;
 mod console;
+mod sdcard;
 mod cpu;
 mod driver;
 mod panic_wait;
 mod print;
 mod synchronization;
 mod time;
+mod fs;
+
 
 unsafe fn kernel_init() -> !{
 
@@ -59,9 +68,30 @@ fn kernel_main() -> !{
     driver::driver_manager().enumerate();
     time::time_manager().spin_for(Duration::from_nanos(1));
 
+    test_sdcard();
+
     loop {
         info!("Spinning for 1 second");
         time::time_manager().spin_for(Duration::from_secs(1));
     }
+
+
+}
+
+fn test_sdcard(){
+    
+    let timesource = TestClock{};
+
+    let mut volume_controller = Controller::new(&sdio, timesource);
+    info!("Getting volume");
+    let volume0 = volume_controller.get_volume(VolumeIdx(0)).unwrap();
+
+    info!("Getting dir");
+    let dir = volume_controller.open_root_dir(&volume0).unwrap();
+    info!("Iterating..");
+    let _ = volume_controller.iterate_dir(&volume0, &dir, |entry| {
+        println!(">> {}",entry.name);
+    });
+
 
 }

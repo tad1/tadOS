@@ -5,7 +5,7 @@
 //! BSP driver support.
 
 use super::memory::map::mmio;
-use crate::{bsp::device_driver, console, driver as generic_driver};
+use crate::{bsp::device_driver, console, driver as generic_driver, sdcard, synchronization::interface::Mutex, info};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 //--------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 static PL011_UART: device_driver::PL011Uart =
     unsafe { device_driver::PL011Uart::new(mmio::PL011_UART_START) };
 static GPIO: device_driver::GPIO = unsafe { device_driver::GPIO::new(mmio::GPIO_START) };
-
+pub static SDIO: device_driver::EMMCController = unsafe { device_driver::EMMCController::new(mmio::EMMC_START) };
 //--------------------------------------------------------------------------------------------------
 // Private Code
 //--------------------------------------------------------------------------------------------------
@@ -33,6 +33,21 @@ fn post_init_gpio() -> Result<(), &'static str> {
     Ok(())
 }
 
+fn post_init_emmc() -> Result<(), &'static str> {
+    use device_driver::EMMCController;
+    // sdcard::register_sdcard(&SDIO);
+    match unsafe { &SDIO.emmc_init_card() } {
+        &crate::sdcard::SdResult::EMMC_OK => {
+            info!("EMMC2 driver initialized...\n")
+        }
+        _ => {
+            info!("failed to initialize EMMC2...\n")
+        }
+    }
+
+    Ok(())
+}
+
 fn driver_uart() -> Result<(), &'static str> {
     let uart_descriptor =
         generic_driver::DeviceDriverDescriptor::new(&PL011_UART, Some(post_init_uart));
@@ -44,6 +59,13 @@ fn driver_uart() -> Result<(), &'static str> {
 fn driver_gpio() -> Result<(), &'static str> {
     let gpio_descriptor = generic_driver::DeviceDriverDescriptor::new(&GPIO, Some(post_init_gpio));
     generic_driver::driver_manager().register_driver(gpio_descriptor);
+
+    Ok(())
+}
+
+fn driver_emmc() -> Result<(), &'static str> {
+    let emmc_descriptor = generic_driver::DeviceDriverDescriptor::new(&SDIO, Some(post_init_emmc));
+    generic_driver::driver_manager().register_driver(emmc_descriptor);
 
     Ok(())
 }
@@ -65,7 +87,12 @@ pub unsafe fn init() -> Result<(), &'static str> {
 
     driver_uart()?;
     driver_gpio()?;
+    driver_emmc()?;
 
     INIT_DONE.store(true, Ordering::Relaxed);
     Ok(())
+}
+
+pub unsafe fn new_sdcard() -> device_driver::EMMCController {
+    device_driver::EMMCController::new(mmio::EMMC_START)
 }

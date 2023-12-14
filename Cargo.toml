@@ -9,6 +9,7 @@ edition = "2021"
 default = []
 bsp_rpi3 = ["tock-registers"]
 bsp_rpi4 = []
+log = []
 
 
 [profile.dev]
@@ -20,4 +21,5 @@ lto = true
 
 [dependencies]
 aarch64-cpu = "9.4.0"
-tock-registers = {version = "0.8.x", default-features = false, features = ["register_types"], optional = true}
+byteorder = {version = "1", default-features = false}
+tock-registers = {version = "0.9.x", default-features = false, features = ["register_types"], optional = true}

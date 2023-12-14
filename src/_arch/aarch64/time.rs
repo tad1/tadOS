@@ -1,11 +1,10 @@
 use crate::warn;
-use aarch64_cpu::{asm::barrier, registers::*};
+use aarch64_cpu::{asm::barrier, registers::{*, Readable}};
 use core::{
     num::{NonZeroU128, NonZeroU32, NonZeroU64},
     ops::{Add, Div},
     time::Duration,
 };
-use tock_registers::interfaces::Readable;
 
 const NANOSEC_PER_SEC: NonZeroU64 = NonZeroU64::new(1_000_000_000).unwrap();
 
@@ -108,4 +107,9 @@ pub fn spin_for(duration: Duration){
     let counter_value_target = curr_counter_value + counter_delta;
 
     while GenericTimerCounterValue(CNTPCT_EL0.get()) < counter_value_target {}
+}
+
+pub fn get_sys_tick_count() -> u64{
+    let current_count: u64 = read_cntpct().0;
+    current_count
 }
