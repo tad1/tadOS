@@ -11,11 +11,13 @@
 
 use core::arch::asm;
 
+use api::{kernel_call, KernelFunction};
 use embedded_sdmmc::{VolumeManager, TimeSource, VolumeIdx, Volume, Timestamp};
+use exception::set_kernel_gate;
 use sdcard::SdResult;
 use time::time_manager;
 
-use crate::{bsp::driver::{SDIO, new_sdcard}};
+use crate::{bsp::driver::{SDIO, new_sdcard}, api::get_kernel_gate};
 
 
 mod bsp;
@@ -33,12 +35,17 @@ mod exception;
 
 unsafe fn kernel_init() -> !{
 
+    exception::handling_init();
+
+    let gate_addr = &(kernel_call as fn(KernelFunction)) as *const fn(KernelFunction);
+    set_kernel_gate(unsafe{gate_addr as u64});
+    
+    
     if let Err(x) = bsp::driver::init() {
         panic!("Error initializing BSP driver subsystem: {}", x)
     }
 
     driver::driver_manager().init_drivers();
-
 
     kernel_main()
 }
@@ -86,12 +93,15 @@ fn kernel_main() -> !{
 
     // test_sdcard();
 
+    let gate = unsafe { get_kernel_gate() };
+    gate(KernelFunction::ReadBlock);
 
     console().clear_rx();
     loop {
         let c = console().read_char();
         console().write_char(c);
     }
+
 
 
 }
