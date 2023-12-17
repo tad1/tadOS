@@ -2,7 +2,7 @@ FROM archlinux
 RUN pacman --noconfirm -Sy rustup cargo-edit qemu-system-aarch64 aarch64-linux-gnu-gdb gcc git github-cli
 RUN git config --global alias.yeet push
 RUN git config --global alias.yoink pull
-RUN rustup default stable
+RUN rustup default nightly
 RUN cargo install cargo-binutils
 RUN rustup component add llvm-tools-preview
-RUN rustup target add aarch64-unknown-none
+RUN rustup target add aarch64-unknown-none-softfloat
