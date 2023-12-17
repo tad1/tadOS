@@ -20,6 +20,8 @@ panic = "abort"
 lto = true
 
 [dependencies]
+defmt = {version = "0.3.1", optional = true}
 aarch64-cpu = "9.4.0"
-byteorder = {version = "1", default-features = false}
-tock-registers = {version = "0.9.x", default-features = false, features = ["register_types"], optional = true}
+cortex-a = "8.1.1"
+embedded-sdmmc = "0.6.0"
+tock-registers = {version = "0.8.x", default-features = false, features = ["register_types"], optional = true}

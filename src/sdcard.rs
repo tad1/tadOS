@@ -3,7 +3,7 @@ mod null_card;
 use core::fmt::Error;
 
 use crate::synchronization::{self, NullLock, interface::Mutex};
-use crate::fs::blockdevice;
+use embedded_sdmmc;
 
 use self::null_card::NULL_SD_CARD;
 
@@ -11,11 +11,11 @@ use self::null_card::NULL_SD_CARD;
 
 pub mod interface {
 
-    use crate::fs::blockdevice;
+    use embedded_sdmmc;
 
     use super::SdResult;
 
-    pub trait BlockDevice: blockdevice::BlockDevice {}
+    pub trait BlockDevice: embedded_sdmmc::BlockDevice {}
 }
 
 #[allow(non_camel_case_types)]
@@ -38,12 +38,12 @@ pub enum SdResult{
 }
 
 // static SDCARD: 
-static CUR_SDCARD: NullLock<&'static (dyn blockdevice::BlockDevice<Error = SdResult> + Sync)> = NullLock::new(&NULL_SD_CARD);
+static CUR_SDCARD: NullLock<&'static (dyn embedded_sdmmc::BlockDevice<Error = SdResult> + Sync)> = NullLock::new(&NULL_SD_CARD);
 
-pub fn register_sdcard(new_card: &'static (dyn blockdevice::BlockDevice<Error = SdResult> + Sync)){
+pub fn register_sdcard(new_card: &'static (dyn embedded_sdmmc::BlockDevice<Error = SdResult> + Sync)){
     CUR_SDCARD.lock(|sdc| *sdc = new_card);
 }
 
-pub fn sdcard() -> &'static dyn blockdevice::BlockDevice<Error = SdResult> {
+pub fn sdcard() -> &'static dyn embedded_sdmmc::BlockDevice<Error = SdResult> {
     CUR_SDCARD.lock(|sdc| *sdc)
 }

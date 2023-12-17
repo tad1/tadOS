@@ -1,12 +1,13 @@
 {
     "configurations": [
+
         
         {
             "type": "gdb",
             "gdbpath": "aarch64-linux-gnu-gdb",
             "request": "attach",
             "name": "Attach to kernel",
-            "executable": "./target/aarch64-unknown-none/debug/tad_os",
+            "executable": "./target/aarch64-unknown-none-softfloat/debug/tad_os",
             "target": ":1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
@@ -14,6 +15,18 @@
             "preLaunchTask": "Build and run",
             "postDebugTask": "Terminate All Tasks"
         },
+        {
+            "type": "gdb",
+            "gdbpath": "aarch64-linux-gnu-gdb",
+            "request": "attach",
+            "name": "Attach to OpenOCD",
+            "executable": "./target/aarch64-unknown-none-softfloat/debug/tad_os",
+            "target": ":3333",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "valuesFormatting": "parseText",
+        },
+        
         
     ]
 }

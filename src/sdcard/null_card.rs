@@ -1,5 +1,5 @@
 
-use crate::fs::blockdevice::{BlockDevice, self};
+use embedded_sdmmc::{BlockDevice, self};
 
 use super::{interface, SdResult};
 use core::fmt;
@@ -13,18 +13,18 @@ impl BlockDevice for NullSdCard{
 
     fn read(
         &self,
-        blocks: &mut [blockdevice::Block],
-        start_block_idx: blockdevice::BlockIdx,
+        blocks: &mut [embedded_sdmmc::Block],
+        start_block_idx: embedded_sdmmc::BlockIdx,
         reason: &str,
     ) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn write(&self, blocks: &[blockdevice::Block], start_block_idx: blockdevice::BlockIdx) -> Result<(), Self::Error> {
+    fn write(&self, blocks: &[embedded_sdmmc::Block], start_block_idx: embedded_sdmmc::BlockIdx) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn num_blocks(&self) -> Result<blockdevice::BlockCount, Self::Error> {
-        Ok(blockdevice::BlockCount(0))
+    fn num_blocks(&self) -> Result<embedded_sdmmc::BlockCount, Self::Error> {
+        Ok(embedded_sdmmc::BlockCount(0))
     }
 }

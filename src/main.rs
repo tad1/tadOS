@@ -8,10 +8,14 @@
 #![no_main]
 #![no_std]
 
-use fs::controller::{Controller, TestClock, VolumeIdx};
-use sdcard::SdResult;
 
-use crate::bsp::driver::{SDIO, new_sdcard};
+use core::arch::asm;
+
+use embedded_sdmmc::{VolumeManager, TimeSource, VolumeIdx, Volume, Timestamp};
+use sdcard::SdResult;
+use time::time_manager;
+
+use crate::{bsp::driver::{SDIO, new_sdcard}};
 
 
 mod bsp;
@@ -82,16 +86,36 @@ fn test_sdcard(){
     
     let timesource = TestClock{};
 
-    let mut volume_controller = Controller::new(&sdio, timesource);
+    let mut volume_controller = VolumeManager::new(&SDIO, timesource);
     info!("Getting volume");
-    let volume0 = volume_controller.get_volume(VolumeIdx(0)).unwrap();
+    let volume0 = volume_controller.open_volume(VolumeIdx(0)).unwrap();
 
     info!("Getting dir");
-    let dir = volume_controller.open_root_dir(&volume0).unwrap();
+    let dir = volume_controller.open_root_dir(volume0).unwrap();
     info!("Iterating..");
-    let _ = volume_controller.iterate_dir(&volume0, &dir, |entry| {
+    let _ = volume_controller.iterate_dir(dir, |entry| {
         println!(">> {}",entry.name);
     });
 
+    let file = volume_controller.open_file_in_dir(dir, "CONFIG.TXT", embedded_sdmmc::Mode::ReadOnly).unwrap();
+    while !volume_controller.file_eof(file).unwrap() {
+        let mut buffer = [0u8; 32];
+        let num_read = volume_controller.read(file, &mut buffer).unwrap();
+        for b in &buffer[0..num_read] {
+            print!("{}", *b as char);
+        }
+    }
 
+    let _ = volume_controller.close_file(file);
+    let _ = volume_controller.close_dir(dir);
+
+
+}
+
+struct TestClock{}
+
+impl TimeSource for TestClock{
+    fn get_timestamp(&self) -> embedded_sdmmc::Timestamp {
+        Timestamp { year_since_1970: 0, zero_indexed_month: 0, zero_indexed_day: 0, hours: 0, minutes: 0, seconds: 0 }
+    }
 }

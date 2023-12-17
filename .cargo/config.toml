@@ -1,3 +1,3 @@
 [build]
-target = "aarch64-unknown-none"
-rustflags = ["-C", "link-arg=--library-path=/workspaces/tadOS/src/bsp/raspberrypi", "-C", "link-arg=--script=kernel.ld"]
+target = "aarch64-unknown-none-softfloat"
+rustflags = ["-C", "link-arg=--library-path=/workspaces/tadOS/src/bsp/raspberrypi", "-C", "link-arg=--script=kernel.ld", "-C","debuginfo=2", "-C", "opt-level=0"]

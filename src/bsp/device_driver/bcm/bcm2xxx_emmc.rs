@@ -7,7 +7,7 @@
 use core::{convert::TryInto, fmt::Debug, num};
 
 use crate::{info, print, warn, bsp::{device_driver::common::MMIODerefWrapper, driver::SDIO}, time::time_manager, sdcard::SdResult, driver::interface::DeviceDriver};
-use crate::fs::blockdevice::{BlockDevice, Block, BlockIdx, BlockCount};
+use embedded_sdmmc::{BlockDevice, Block, BlockIdx, BlockCount};
 use rpi4_constants::*;
 use tock_registers::{
     interfaces::{ReadWriteable, Readable, Writeable},
@@ -1509,7 +1509,6 @@ impl BlockDevice for &EMMCController {
             &SDIO.emmc_transfer_blocks(start_block_idx.0, num_blocks as u32, &mut buff, false);
         match res {
             SdResult::EMMC_OK => {
-                info!("Read with success!");
                 Ok(())
             },
             _ => Err(*res),
@@ -1569,8 +1568,6 @@ impl EMMCController {
         let t_mask: u32 = mask | INT_ERROR_MASK as u32; // Add fatal error masks to mask provided
 
         let eval = self.registers.EMMC_INTERRUPT.get();
-        info!("ival = 0x{:08x}", eval);
-        info!("mask = 0x{:08x}", mask);
         while (self.registers.EMMC_INTERRUPT.get() & t_mask) == 0 && (time_diff < 1000000) {
             if start_time == 0 {
                 start_time = timer_get_tick_count()
@@ -1579,7 +1576,6 @@ impl EMMCController {
             else {
                 time_diff = tick_difference(start_time, timer_get_tick_count())
             } // Time difference between start time and now
-            info!("Waiting still: {}", time_diff);
         }
 
         let ival = self.registers.EMMC_INTERRUPT.get(); // Fetch all the interrupt flags
@@ -1893,8 +1889,6 @@ impl EMMCController {
             .EMMC_INTERRUPT
             .set(self.registers.EMMC_INTERRUPT.get()); // Clear interrupts
 
-        info!("interrupe register: 0x{:08x}", self.registers.EMMC_INTERRUPT.get());
-
         // Set the argument and the command code, Some commands require a delay before reading the response
         self.registers.EMMC_ARG1.set(arg); // Set argument to SD card
         self.registers.EMMC_CMDTM.set(cmd.cmd_code.get()); // Send command to SD card
@@ -1903,7 +1897,6 @@ impl EMMCController {
         }; // Wait for required delay
 
         // Wait until we finish sending the command i.e. the CMD_DONE interrupt bit is set.
-        info!("awaiting for interrupt");
         let res = self.emmc_wait_for_interrupt(INT_CMD_DONE as u32);
         match res {
             SdResult::EMMC_OK => {}
@@ -2210,7 +2203,6 @@ impl EMMCController {
             | CONTROL1::CLK_GENSEL.val(0).value
             | CONTROL1::CLK_EN.val(1).value
             | CONTROL1::CLK_INTLEN.val(1).value;
-        info!("control1: {:?}", control1);
         self.registers.EMMC_CONTROL1.set(control1);
 
         /* Wait for clock to be stablized */
@@ -2383,7 +2375,6 @@ impl EMMCController {
         write: bool,
     ) -> SdResult {
 
-        info!("Requested to read {} blocks from {}",num_blocks, start_block);
         if unsafe { EMMC_CARD.emmc_card_type == SdCardType::EMMC_TYPE_UNKNOWN } {
             return SdResult::EMMC_NO_RESP;
         } // If card not known return error
@@ -2415,7 +2406,7 @@ impl EMMCController {
             && unsafe {
                 if EMMC_CARD
                     .scr
-                    .matches_any(&[SCR::CMD_SUPPORT::CMD_SUPP_SET_BLKCNT])
+                    .matches_any(SCR::CMD_SUPPORT::CMD_SUPP_SET_BLKCNT)
                 {
                     #[cfg(feature = "log")]
                     info!("card supports multi_block transfers\n");
@@ -2468,7 +2459,6 @@ impl EMMCController {
         let mut buffer_addr = buffer.as_ptr() as usize;
         while (blocks_done < num_blocks) {
             // Wait for ready interrupt for the next block.
-            info!("Waiting for {}th block", blocks_done);
             resp = self.emmc_wait_for_interrupt(ready_int as u32);
             if resp != SdResult::EMMC_OK {
                 #[cfg(feature = "log")]
@@ -2476,7 +2466,6 @@ impl EMMCController {
 
                 return self.emmc_debug_response(resp);
             }
-            info!("Ok, got it!");
 
             // Handle non-word-aligned buffers byte-by-byte.
             // Note: the entire block is sent without looking at status registers.
@@ -2512,7 +2501,6 @@ impl EMMCController {
                 }
             }
 
-            info!("Copied data!");
 
             if blocks_done + 1 == num_blocks {
                 // we're done transferring all blocks
@@ -2565,7 +2553,7 @@ impl EMMCController {
             && unsafe {
                 if EMMC_CARD
                     .scr
-                    .matches_any(&[SCR::CMD_SUPPORT::CMD_SUPP_SET_BLKCNT])
+                    .matches_any(SCR::CMD_SUPPORT::CMD_SUPP_SET_BLKCNT)
                 {
                     #[cfg(feature = "log")]
                     info!("card supports multi_block transfers\n");
@@ -2716,8 +2704,6 @@ impl EMMCController {
             }
         };
 
-        info!(">b5");
-
         // Send ALL_SEND_CID (CMD2)
         resp = self.emmc_send_command(SdCardCommands::ALL_SEND_CID);
         if (resp != SdResult::EMMC_OK) {
@@ -2836,3 +2822,22 @@ impl DeviceDriver for EMMCController {
     }
 }
 
+
+impl Debug for SCR::BUS_WIDTH::Value {
+    fn fmt(&self, _f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::BUS_WIDTH_1 => {
+                print!("WIDTH_1");
+                Ok(())
+            }
+            Self::BUS_WIDTH_4 => {
+                print!("WIDTH_4");
+                Ok(())
+            }
+            Self::BUS_WIDTH_1_4 => {
+                print!("WIDTH_1_4");
+                Ok(())
+            }
+        }
+    }
+}

@@ -1,4 +1,5 @@
 {
+	"runArgs": ["--network=host"],
 	"build": {
 		"dockerfile": "dockerfile"
 	},
