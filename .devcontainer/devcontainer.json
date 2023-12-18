@@ -1,12 +1,17 @@
 {
+	"runArgs": ["--network=host"],
 	"build": {
 		"dockerfile": "dockerfile"
 	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"Swellaby.rust-pack"
+				"Swellaby.rust-pack",
+				"ZixuanWang.linkerscript",
+				"christian-kohler.path-intellisense",
+				"webfreak.debug"
 			]
 		}
 	}
+	
 }

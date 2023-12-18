@@ -1,0 +1,60 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+
+        {
+            "type": "cargo",
+            "command": "build",
+            "args": ["-v", "--features","bsp_rpi3"],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "Build"
+        },{
+            "type": "shell",
+            "command": "cargo",
+            "args": ["objcopy", "-v", "--features","bsp_rpi3", "--", "--strip-all", "-O", "binary", "kernel8.img"],
+            "label": "create image"
+        },{
+            "label": "Run QEMU",
+            "type": "shell",
+            "isBackground": true,
+            "command": "echo Starting QEMU&qemu-system-aarch64 -M raspi3b -kernel ./target/aarch64-unknown-none-softfloat/debug/tad_os -serial stdio -s",
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(Starting QEMU)",
+                    "line": 1,
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^(Starting QEMU)",
+                    "endsPattern": "^(Starting QEMU)"
+                }
+            }
+        }, {
+            "label": "Build and run",
+            "dependsOrder":"sequence",
+            "dependsOn": [
+                "Build",
+                "create image",
+                "Run QEMU",
+            ]
+        },
+        
+        {
+            "label": "Terminate All Tasks",
+            "command": "echo ${input:terminate}",
+            "type": "shell",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+          "id": "terminate",
+          "type": "command",
+          "command": "workbench.action.tasks.terminate",
+          "args": "terminateAll"
+        }
+      ]
+}
