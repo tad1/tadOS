@@ -1,8 +1,7 @@
 
 use embedded_sdmmc::{BlockDevice, self};
 
-use super::{interface, SdResult};
-use core::fmt;
+use super::SdResult;
 
 pub struct NullSdCard;
 
@@ -13,14 +12,14 @@ impl BlockDevice for NullSdCard{
 
     fn read(
         &self,
-        blocks: &mut [embedded_sdmmc::Block],
-        start_block_idx: embedded_sdmmc::BlockIdx,
-        reason: &str,
+        _blocks: &mut [embedded_sdmmc::Block],
+        _start_block_idx: embedded_sdmmc::BlockIdx,
+        _reason: &str,
     ) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn write(&self, blocks: &[embedded_sdmmc::Block], start_block_idx: embedded_sdmmc::BlockIdx) -> Result<(), Self::Error> {
+    fn write(&self, _blocks: &[embedded_sdmmc::Block], _start_block_idx: embedded_sdmmc::BlockIdx) -> Result<(), Self::Error> {
         Ok(())
     }
 

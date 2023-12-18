@@ -9,15 +9,16 @@
 #![no_std]
 
 
-use core::arch::asm;
+use core::{arch::asm, fmt::Display};
 
 use api::{kernel_call, KernelFunction};
-use embedded_sdmmc::{VolumeManager, TimeSource, VolumeIdx, Volume, Timestamp};
+use bsp::EMMCController;
+use embedded_sdmmc::{VolumeManager, VolumeIdx};
 use exception::set_kernel_gate;
 use sdcard::SdResult;
 use time::time_manager;
 
-use crate::{bsp::driver::{SDIO, new_sdcard}, api::get_kernel_gate};
+use crate::{bsp::driver::{SDIO, new_sdcard}, api::get_kernel_gate, fs::TestClock, elf::load_elf, sdcard::SdmmcError};
 
 
 mod bsp;
@@ -31,14 +32,15 @@ mod synchronization;
 mod time;
 mod api;
 mod exception;
-
+mod elf;
+mod fs;
 
 unsafe fn kernel_init() -> !{
 
     exception::handling_init();
 
-    let gate_addr = &(kernel_call as fn(KernelFunction)) as *const fn(KernelFunction);
-    set_kernel_gate(unsafe{gate_addr as u64});
+    let gate_addr = &(kernel_call as fn(KernelFunction, u64, u64)) as *const fn(KernelFunction, u64, u64);
+    set_kernel_gate(gate_addr as u64);
     
     
     if let Err(x) = bsp::driver::init() {
@@ -89,28 +91,106 @@ fn kernel_main() -> !{
     info!("Timer test, spinning for 1 second");
     time::time_manager().spin_for(Duration::from_secs(1));
 
-    // set interrupt vector table
-
-    // test_sdcard();
-
-    let gate = unsafe { get_kernel_gate() };
-    gate(KernelFunction::ReadBlock);
-
     console().clear_rx();
+
+    const MAX_COMMAND_SIZE: usize = 11;
+    let mut buffer: [u8; MAX_COMMAND_SIZE] = [b' '; MAX_COMMAND_SIZE];
+    let mut i = 0;
+    
+    let mut volume_controller = VolumeManager::new(&SDIO, TestClock{});
+    
+    test_sdcard(&mut volume_controller);
+    let volume0 = volume_controller.open_volume(VolumeIdx(0)).unwrap();
+    let dir = volume_controller.open_root_dir(volume0).unwrap();
+    
+    print!("[{}kernel{} /] >", "\x1b[32m", "\x1b[0m");
     loop {
         let c = console().read_char();
-        console().write_char(c);
+
+        if c.is_control() {
+            match c as u8 {
+                23 => while i > 0 { // Ctrl + Backspace
+                    console().write_char(8 as char);
+                    console().write_char(' ');
+                    console().write_char(8 as char);
+                    
+                    
+                    i = i - 1;
+                    if buffer[i] == ' ' as u8{
+                        break;
+                    }
+                }
+                127 => if i > 0 { // Backspace
+                    console().write_char(8 as char);
+                    console().write_char(' ');
+                    console().write_char(8 as char);
+                    i = i - 1;
+                }
+                9 => { // Tab
+                    let typed_name: &str = unsafe {core::mem::transmute(&buffer[..i] as &[u8])};
+                    println!("");
+                    let _ = volume_controller.iterate_dir(dir, |entry| if entry.name.base_name().starts_with(typed_name.as_bytes()) {
+                            println!("{}", entry.name);
+                        }
+                    );
+                    print!("[{}kernel{} /] >{}", "\x1b[32m", "\x1b[0m", typed_name);
+
+
+
+                }
+                13 => { // Enter
+                    console().write_char('\n');
+                    // 1. check if file exists
+                    let name: &str = unsafe {core::mem::transmute(&buffer[..i] as &[u8])};
+                    let res = volume_controller.open_file_in_dir(dir, name, embedded_sdmmc::Mode::ReadOnly);
+                    
+
+                    match res {
+                        Ok(file) => {
+                            let res = unsafe { load_elf(&mut volume_controller, file) };
+                            let _ = volume_controller.close_file(file);
+
+                            if let Some(function) = res {
+                                function();
+                            }
+
+                        },
+                        Err(err) => {
+                            info!("{}", SdmmcError(err));
+                            i = 0;
+                            print!("[{}kernel{} /] >", "\x1b[32m", "\x1b[0m");
+                            continue;
+                        },
+                    }
+                    let _ = volume_controller.close_dir(dir);
+                    
+                    i = 0;
+                    print!("[{}kernel{} /] >", "\x1b[32m", "\x1b[0m");
+                }
+                _ => {}            
+            }
+        } else {
+            if i < MAX_COMMAND_SIZE{
+                console().write_char(c);
+                buffer[i] = c as u8;
+                i = i + 1;
+            }
+        }
+        // if(c as u8 == 127){
+        // }
+        // console().write_char(c);
     }
+
+    let _ = volume_controller.close_dir(dir);
+    let _ = volume_controller.close_volume(volume0);
 
 
 
 }
 
-fn test_sdcard(){
+fn test_sdcard(volume_controller:&mut VolumeManager<&EMMCController, TestClock>){
     
-    let timesource = TestClock{};
 
-    let mut volume_controller = VolumeManager::new(&SDIO, timesource);
     info!("Getting volume");
     let volume0 = volume_controller.open_volume(VolumeIdx(0)).unwrap();
 
@@ -132,14 +212,8 @@ fn test_sdcard(){
 
     let _ = volume_controller.close_file(file);
     let _ = volume_controller.close_dir(dir);
+    let _ = volume_controller.close_volume(volume0);
 
 
 }
 
-struct TestClock{}
-
-impl TimeSource for TestClock{
-    fn get_timestamp(&self) -> embedded_sdmmc::Timestamp {
-        Timestamp { year_since_1970: 0, zero_indexed_month: 0, zero_indexed_day: 0, hours: 0, minutes: 0, seconds: 0 }
-    }
-}

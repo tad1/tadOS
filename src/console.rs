@@ -35,6 +35,10 @@ pub mod interface {
             ' '
         }
 
+        fn read_char_nonblocking(&self) -> Option<char> {
+            Some(' ')
+        }
+
         /// Clear RX buffers, if any.
         fn clear_rx(&self);
     }

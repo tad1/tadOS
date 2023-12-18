@@ -5,7 +5,7 @@
 //! BSP driver support.
 
 use super::memory::map::mmio;
-use crate::{bsp::device_driver, console, driver as generic_driver, sdcard, synchronization::interface::Mutex, info};
+use crate::{bsp::device_driver, console, driver as generic_driver, synchronization::interface::Mutex, info};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 //--------------------------------------------------------------------------------------------------

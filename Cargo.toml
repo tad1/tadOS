@@ -3,6 +3,13 @@ name = "tad_os"
 version = "0.1.0"
 edition = "2021"
 
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
@@ -10,14 +17,6 @@ default = []
 bsp_rpi3 = ["tock-registers"]
 bsp_rpi4 = []
 log = []
-
-
-[profile.dev]
-panic = "abort"
-
-[profile.release]
-panic = "abort"
-lto = true
 
 [dependencies]
 defmt = {version = "0.3.1", optional = true}

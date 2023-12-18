@@ -1,0 +1,2 @@
+[build]
+rustflags = ["-C", "link-arg=--library-path=/workspaces/tadOS/src/bsp/raspberrypi", "-C", "link-arg=--script=kernel.ld", "-C","debuginfo=2", "-C", "opt-level=0"]

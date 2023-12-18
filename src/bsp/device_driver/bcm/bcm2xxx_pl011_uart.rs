@@ -1,5 +1,5 @@
 use crate::{
-    bsp::device_driver::common::MMIODerefWrapper, console, cpu, driver, synchronization,
+    bsp::device_driver::common::MMIODerefWrapper, console, driver, synchronization,
     synchronization::NullLock,
 };
 use core::fmt;
@@ -271,18 +271,16 @@ impl PL011UartInner {
         }
 
         // Read one character.
-        let mut ret = self.registers.DR.get() as u8 as char;
+        let ret = self.registers.DR.get() as u8 as char;
 
         // Convert carrige return to newline.
-        if ret == '\r' {
-            ret = '\n'
-        }
 
         // Update statistics.
         self.chars_read += 1;
 
         Some(ret)
     }
+
 }
 
 /// Implementing `core::fmt::Write` enables usage of the `format_args!` macros, which in turn are
@@ -363,6 +361,10 @@ impl console::interface::Read for PL011Uart {
     fn read_char(&self) -> char {
         self.inner
             .lock(|inner| inner.read_char_converting(BlockingMode::Blocking).unwrap())
+    }
+
+    fn read_char_nonblocking(&self) -> Option<char> {
+        self.inner.lock(|inner| inner.read_char_converting(BlockingMode::NonBlocking))
     }
 
     fn clear_rx(&self) {

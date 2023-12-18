@@ -12,7 +12,7 @@
 //! crate::exception::arch_exception
 
 use aarch64_cpu::{asm::barrier, registers::*};
-use core::{arch::{global_asm, asm}, cell::UnsafeCell, fmt};
+use core::{arch::global_asm, cell::UnsafeCell, fmt};
 use tock_registers::{
     interfaces::{Readable, Writeable},
     registers::InMemoryRegister,
@@ -112,21 +112,13 @@ extern "C" fn current_el0_serror(_e: &mut ExceptionContext) {
 extern "C" fn current_elx_synchronous(e: &mut ExceptionContext) {
     let syndrome = e.esr_el1.0.read(ESR_EL1::ISS);
     
-    if syndrome == 0x666 {
-        let addr = KERNEL_GATE.inner.lock(|inner| inner.function);
-        e.gpr[0] = addr;
-        return;
-    }
-    if e.fault_address_valid() {
-        let far_el1 = FAR_EL1.get();
-
-        // This catches the demo case for this tutorial. If the fault address happens to be 8 GiB,
-        // advance the exception link register for one instruction, so that execution can continue.
-        if far_el1 == 8 * 1024 * 1024 * 1024 {
-            e.elr_el1 += 4;
-
+    match syndrome {
+        0x666 => {
+            let addr = KERNEL_GATE.inner.lock(|inner| inner.function);
+            e.gpr[0] = addr;
             return;
         }
+        _ => {}
     }
 
     default_exception_handler(e);

@@ -1,25 +1,33 @@
-use core::{arch::asm, ptr, fmt};
+use core::arch::asm;
 
-use crate::info;
+use embedded_sdmmc::{Block, BlockIdx};
+
+use crate::bsp::driver::SDIO;
+
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
+
+// note arguments should be passed as u64
 pub enum KernelFunction {
-    ReadBlock
+    ReadBlock,
+    ReadChar,
+    ReadCharNonBlocking,
+    WriteChar,
+    WriteFmt,
+    Spin,
 }
 
-
-pub fn kernel_call(function: KernelFunction){
-    info!("Calling kernel function!");
-    match function {
-        KernelFunction::ReadBlock => {
-            info!("trying to read block!")
-        },
-    }
+pub struct ReadBlockArgs<'a>{
+    pub blocks: &'a mut[Block],
+    pub start_block: BlockIdx,
+    pub reason: &'a str
 }
+
+pub type KernelCall = extern fn(KernelFunction, u64, u64);
 
 // return to kernel_call function
-pub unsafe extern "C" fn get_kernel_gate() -> extern fn(KernelFunction){
+pub unsafe fn get_kernel_gate() -> KernelCall {
     let mut addr: *const fn(KernelFunction) = core::ptr::null() as *const fn(KernelFunction);
     asm!(
         "mov x0, {addr}",
@@ -27,7 +35,5 @@ pub unsafe extern "C" fn get_kernel_gate() -> extern fn(KernelFunction){
         "mov {addr}, x0",
         addr = inout(reg) addr);
     
-    info!("Address is: {:x}", addr as u64);
-
     core::mem::transmute(*addr)
 }

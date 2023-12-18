@@ -1,9 +1,11 @@
-use core::fmt;
+use core::{fmt, ptr::addr_of};
 
-use crate::console;
+use crate::{console, api::{get_kernel_gate, KernelFunction}};
 
 pub fn _print(args: fmt::Arguments) {
-    console::console().write_fmt(args).unwrap();
+    let gate = unsafe { get_kernel_gate() };
+    gate(KernelFunction::WriteFmt, addr_of!(args) as u64, 0);
+    // console::console().write_fmt(args).unwrap();
 }
 
 #[macro_export]
