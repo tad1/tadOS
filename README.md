@@ -12,7 +12,7 @@ You need a UART to USB converter (i.e., CP21xx) to connect with Raspberry.
 It is a single-core and single-process OS. The base functionality allows the execution of static ELF.\
 OS exports a minimal functionality kernel call; see [tadOSv0.1 Utils](https://github.com/tad1/tadOSv0.1-Utils), for example, programs written in Rust.
 
-**But.. can it run DOOM?**
+**But.. can it run DOOM?**\
 it should, yet there's no generic doom for embedded Rust (a future project? maybe)
  
 
