@@ -1,4 +1,4 @@
-OResult of College assignment: a tad OS written for Raspberry Pi 3B
+Result of College assignment: a tad OS written for Raspberry Pi 3B
 
 ### Installation
 1. Prepare SD card ([link](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up/2))
