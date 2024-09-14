@@ -27,7 +27,7 @@ fn panic(info: &PanicInfo) -> !{
     println!(
         "[  {:>3}.{:06}] Kernel panic!\n\n\
         Parnic location:\n      File '{}', line {}, column {}\n\n\
-        {}",timestamp.as_secs(), timestamp.subsec_micros(), file, line, column, info.message().unwrap_or(&format_args!("")));
+        {}",timestamp.as_secs(), timestamp.subsec_micros(), file, line, column, info.message());
 
 
     cpu::wait_forever()

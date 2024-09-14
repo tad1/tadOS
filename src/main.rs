@@ -1,24 +1,17 @@
-#![feature(asm_const)]
 #![feature(const_option)]
-#![feature(nonzero_min_max)]
 #![feature(format_args_nl)]
 #![feature(slice_as_chunks)]
-#![feature(panic_info_message)]
-#![feature(unchecked_math)]
 #![no_main]
 #![no_std]
 
 
-use core::{arch::asm, fmt::Display};
 
 use api::{kernel_call, KernelFunction};
 use bsp::EMMCController;
 use embedded_sdmmc::{VolumeManager, VolumeIdx};
 use exception::set_kernel_gate;
-use sdcard::SdResult;
-use time::time_manager;
 
-use crate::{bsp::driver::{SDIO, new_sdcard}, api::get_kernel_gate, fs::TestClock, elf::load_elf, sdcard::SdmmcError};
+use crate::{bsp::driver::SDIO, fs::TestClock, elf::load_elf, sdcard::SdmmcError};
 
 
 mod bsp;
@@ -162,8 +155,6 @@ fn kernel_main() -> !{
                             continue;
                         },
                     }
-                    let _ = volume_controller.close_dir(dir);
-                    
                     i = 0;
                     print!("[{}kernel{} /] >", "\x1b[32m", "\x1b[0m");
                 }
