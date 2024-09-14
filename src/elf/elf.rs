@@ -1,6 +1,8 @@
+use core::time::Duration;
+
 use embedded_sdmmc::{File, VolumeManager};
 
-use crate::{fs::TestClock, bsp::EMMCController, info};
+use crate::{fs::TestClock, bsp::EMMCController, info, time, utils::Perf, println};
 
 
 
@@ -39,6 +41,8 @@ pub unsafe fn load_elf(vol_mgr: &mut embedded_sdmmc::VolumeManager<&EMMCControll
     // TODO: remove responsiblity of reading headers
     const HEADER_SIZE: usize = core::mem::size_of::<ELF64Header>();
     let mut buffer: [u8; HEADER_SIZE] = [0; HEADER_SIZE];
+    let mut emmc_time: Duration = Duration::new(0, 0);
+    let mut copy_time: Duration = Duration::new(0, 0);
 
     let _ = vol_mgr.file_seek_from_start(file, 0);
     let _ = vol_mgr.read(file, &mut buffer);
@@ -67,20 +71,27 @@ pub unsafe fn load_elf(vol_mgr: &mut embedded_sdmmc::VolumeManager<&EMMCControll
     let mut bytes_readed: usize = 0;
 
     let _ = vol_mgr.file_seek_from_start(file, offset as u32);
-    let mut buff = [0; 32];
+    let mut buff = [0; 512];
     let mut memory_addr_index: isize = 0;
     while bytes_readed < bytes_to_read as usize {
         // read
-        let mut n_bytes = vol_mgr.read(file, &mut buff).unwrap();
+        let perf = Perf::start();
+        let n_bytes = vol_mgr.read(file, &mut buff).unwrap();
+        emmc_time += perf.stop();
+
         bytes_readed = bytes_readed + n_bytes;
 
         // write
+        let perf = Perf::start();
         for b in &buff[0..n_bytes]{
             core::ptr::write_volatile(memory_addr.offset(memory_addr_index), *b);
             memory_addr_index = memory_addr_index + 1;
-
         }
+        copy_time += perf.stop();
     }
+    println!("sd read time: {:?}", emmc_time);
+    println!("copy time: {:?}", copy_time);
+
     return Some(core::mem::transmute(entry_addr));
     
 }

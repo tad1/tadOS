@@ -27,6 +27,7 @@ mod api;
 mod exception;
 mod elf;
 mod fs;
+mod utils;
 
 unsafe fn kernel_init() -> !{
 
