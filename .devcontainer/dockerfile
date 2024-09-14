@@ -1,5 +1,7 @@
 FROM archlinux
-RUN pacman --noconfirm -Sy rustup cargo-edit qemu-system-aarch64 aarch64-linux-gnu-gdb gcc git github-cli
+RUN pacman-key --init
+RUN pacman --noconfirm -Sy archlinux-keyring
+RUN pacman --noconfirm -Syu rustup cargo-edit qemu-system-aarch64 aarch64-linux-gnu-gdb gcc git github-cli less
 RUN git config --global alias.yeet push
 RUN git config --global alias.yoink pull
 RUN rustup default nightly
